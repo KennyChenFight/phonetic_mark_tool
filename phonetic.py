@@ -8,12 +8,14 @@ class PhoneticMarkTool:
     tone_compare_file = 'tone_compare.txt'
 
     special_pron = ['pau', 'L', 'niL']
+    full_punctuation = ' ，。：!"#$%&\\()*+,-./:;<=>?@[\\]^_`{|}~→↓△▿⋄•！？。?〞＃＄％＆』（）＊＋－╱︰；＜＝＞＠〔╲〕 ＿ˋ｛∣｝∼、〃》「」『』【】﹝﹞【】〝〞–—『』「」…﹏'
 
     @classmethod
     def mark_mono_file(cls, recorded_file_dir,
                        mono_file_dir, mark_file):
         recorded_file_paths = cls.filepath_list(recorded_file_dir)
         mono_file_paths = cls.filepath_list(mono_file_dir)
+        recorded_file_paths, mono_file_paths = cls.check_same_sentence_file(recorded_file_paths, mono_file_paths)
         recorded_table = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
         c_table, v_table = cls.read_c_v_table()
         tone_table = cls.read_tone_table()
@@ -25,6 +27,7 @@ class PhoneticMarkTool:
                        full_file_dir, mark_file):
         record_file_paths = cls.filepath_list(record_file_dir)
         full_file_paths = cls.filepath_list(full_file_dir)
+        record_file_paths, full_file_paths = cls.check_same_sentence_file(record_file_paths, full_file_paths)
         record_table = cls.produce_record_table(record_file_paths, full_file_paths)
         c_table, v_table = cls.read_c_v_table()
         tone_table = cls.read_tone_table()
@@ -32,47 +35,90 @@ class PhoneticMarkTool:
         cls.write_mark_file(phonetic_table, mark_file)
 
     @classmethod
+    def check_same_sentence_file(cls, txt_file_paths, pron_file_paths):
+        txt = {}
+        repeated_file = []
+        delete_file = []
+        for txt_file in txt_file_paths:
+            with open(txt_file, 'r', encoding='utf-8') as f:
+                line = ''.join([text for text in f.read() if not (text in cls.full_punctuation)])
+                if line in txt:
+                    delete_file.append(txt_file)
+                    repeated_file.append((txt[line], txt_file))
+                else:
+                    txt[line] = txt_file
+        txt_file_paths = [t for t in txt_file_paths if t not in delete_file]
+        delete_file_names = [os.path.basename(t).replace('.txt', '') for t in delete_file]
+        pron_file_paths = [t for t in pron_file_paths if os.path.basename(t).replace('.lab', '') not in delete_file_names]
+
+        return txt_file_paths, pron_file_paths
+
+    @classmethod
     def produce_recorded_table(cls,
                                recorded_file_paths,
                                mono_file_paths):
+        # text_set = {}
         text_list = []
         for filepath in recorded_file_paths:
             with open(filepath, 'r', encoding='utf-8') as f:
-                text_list.append(f.read())
-
+                line = ''.join([text for text in f.read() if not (text in cls.full_punctuation)])
+                text_list.append(line)
+                # if line in text_set:
+                #     print(filepath)
+                #     print(text_set[line])
+                #     print(line)
+                # else:
+                #     text_set[line] = filepath
         pron_list = []
         for mono_filepath in mono_file_paths:
             with open(mono_filepath, 'r', encoding='utf-8') as f:
+                pron = []
                 for line in f:
                     line = line.strip()
-                    pron_list.append(''.join([pron for pron in line if not (pron.isdigit() or pron.isspace())]))
-
-        recorded_table = OrderedDict(zip(text_list, [pron_list]))
+                    pron.append(''.join([pron for pron in line if not (pron.isdigit() or pron.isspace())]))
+                pron_list.append(pron)
+        recorded_table = OrderedDict(zip(text_list, pron_list))
         return recorded_table
 
     @classmethod
     def produce_record_table(cls,
                                record_file_paths,
                                full_file_paths):
+        # text_set = set()
         text_list = []
         for filepath in record_file_paths:
             with open(filepath, 'r', encoding='utf-8') as f:
-                text_list.append(f.read())
-
+                line = f.read()
+                text_list.append(line)
+        #         if line in text_set:
+        #             print(line)
+        #         else:
+        #             text_set.add(line)
+        # print(len(text_set))
         pron_list = []
         for full_filepath in full_file_paths:
             with open(full_filepath, 'r', encoding='utf-8') as f:
+                pron = []
                 for line in f:
                     minus_index = line.index('-')
                     add_index = line.index('+')
-                    pron_list.append(line[minus_index + 1:add_index])
-
-        recorded_table = OrderedDict(zip(text_list, [pron_list]))
+                    pron.append(line[minus_index + 1:add_index])
+                pron_list.append(pron)
+        recorded_table = OrderedDict(zip(text_list, pron_list))
         return recorded_table
 
     @classmethod
     def filepath_list(cls, file_dir):
-        return [file_dir + '/' + filename for filename in os.listdir(file_dir)]
+        return [file_dir + '/' + filename for filename in sorted(os.listdir(file_dir), key=cls.filter)]
+
+    @classmethod
+    def filter(cls, filename):
+        if filename.startswith('a'):
+            return int(filename[:-4].replace('a', ''))
+        elif filename.startswith('SomeFile_'):
+            return int(filename[:-4].replace('SomeFile_', ''))
+        else:
+            return int(filename[:-4])
 
     @classmethod
     def read_c_v_table(cls):
@@ -99,7 +145,6 @@ class PhoneticMarkTool:
 
     @classmethod
     def mark_phonetic(cls, record_table, c_table, v_table, tone_table):
-
         for sentence, pron_list in record_table.items():
             phonetic_collection = []
             index = 0
@@ -116,6 +161,9 @@ class PhoneticMarkTool:
                                 phonetic_collection.append(phonetic_list)
                                 index += 3
                                 break
+                    else:
+                        print('找不到')
+                        index += 3
                 elif not (pron in cls.special_pron):
                     v1_index = index
                     v2_index = index + 1
@@ -127,11 +175,14 @@ class PhoneticMarkTool:
                                 phonetic_collection.append(phonetic_list)
                                 index += 2
                                 break
+                    else:
+                        print('找不到')
+                        index += 2
                 else:
+                    print('找不到或是特殊符號')
                     index += 1
-
+            print(sentence, phonetic_collection)
             record_table[sentence] = phonetic_collection
-        print(record_table)
         return record_table
 
     @classmethod
@@ -140,8 +191,7 @@ class PhoneticMarkTool:
             for sentence, phonetic_list in phonetic_table.items():
                 f.write(sentence + '\n')
                 f.write('   '.join([''.join(phonetic) for phonetic in phonetic_list]))
-
-
+                f.write('\n')
 
 
 #

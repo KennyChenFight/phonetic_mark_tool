@@ -1,4 +1,5 @@
 from phonetic import PhoneticMarkTool
+import os
 import sys
 from phonetic_mark_tool import Ui_MainWindow
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QPushButton, QMainWindow
@@ -15,7 +16,6 @@ class AppWindow(QMainWindow):
         self.ui.pb_record_file_dir.clicked.connect(self.record_file_dir_click)
         self.ui.pb_record_full_dir.clicked.connect(self.record_full_file_dir_click)
         self.ui.pb_mark_full_file.clicked.connect(self.mark_full_file_click)
-
 
     def recorded_file_dir_click(self):
         dir = QFileDialog.getExistingDirectory(self,
@@ -77,42 +77,33 @@ w = AppWindow()
 w.show()
 sys.exit(app.exec_())
 
+
+# recorded_file_dir = 'C:\\Users\\P19054\\Desktop\\recorded - 複製\\txt\\'
+# recorded_mono_dir = 'C:\\Users\\P19054\\Desktop\\recorded - 複製\\mono\\'
+# recorded_mark_file = 'C:\\Users\\P19054\\Desktop\\recorded - 複製\\mark.txt'
 #
-# recorded_file_dir = 'recorded/txt/'
-# recorded_mono_dir = 'recorded/mono/'
-# recorded_mark_file = 'recorded/mark.txt'
+# record_file_dir = 'C:\\Users\\P19054\\Desktop\\407\\txt'
+# record_full_dir = 'C:\\Users\\P19054\\Desktop\\407\\full'
+# record_mark_file = 'C:\\Users\\P19054\\Desktop\\407\\mark.txt'
+
+
+#PhoneticMarkTool.mark_mono_file(recorded_file_dir, recorded_mono_dir, recorded_mark_file)
+#PhoneticMarkTool.mark_full_file(record_file_dir, record_full_dir, record_mark_file)
+
+# dir = 'C:\\Users\\P19054\\Desktop\\407\\full\\'
+# temp = os.listdir('C:\\Users\\P19054\Desktop\\PearSynthesizer\\gen')
 #
-# record_file_dir = 'record/txt/'
-# record_full_dir = 'record/full/'
-# record_mark_file = 'record/mark.txt'
-#
-#
-# PhoneticMarkTool.mark_mono_file(recorded_file_dir, recorded_mono_dir, recorded_mark_file)
-# PhoneticMarkTool.mark_full_file(record_file_dir, record_full_dir, record_mark_file)
-#
-#
-# # line_collection = []
-# # with open('pron_compare.txt', 'r', encoding='utf-8') as f:
-# #     for line in f:
-# #         line = line.strip().split(',')
-# #         line_collection.append(line)
-# #
-# # phonetic_collection = []
-# # with open('phonetic_compare.txt', 'r', encoding='utf-8') as f:
-# #     for line in f:
-# #         line = line.strip().split(',')
-# #         phonetic_collection.append(line)
-# #
-# #
-# # for line in line_collection:
-# #     is_exist = False
-# #     pron = line[1].split(' ')
-# #     for phonetic in phonetic_collection:
-# #         if phonetic[2] in pron:
-# #             is_exist = True
-# #             break
-# #     if not(is_exist):
-# #         print(line)
-#
-#
-#
+# for a in temp:
+#     if '.lab' not in a:
+#         os.remove('C:\\Users\\P19054\Desktop\\PearSynthesizer\\gen\\' + a)
+
+# temp = os.listdir(record_file_dir)
+# for a in temp:
+#     full_path = record_file_dir + '\\' + a
+#     with open(full_path, 'r', encoding='utf-8') as f:
+#         line_count = 1
+#         for line in f:
+#             line = line.strip()
+#             with open(record_file_dir + '\\' + str(line_count) + '.txt', 'w', encoding='utf-8') as w:
+#                 w.write(line)
+#             line_count += 1
