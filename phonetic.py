@@ -196,7 +196,7 @@ class PhoneticMarkTool:
                 else:
                     print('找不到或是特殊符號')
                     index += 1
-            print(sentence, phonetic_collection)
+            print(sentence, phonetic_collection, pron_list)
             record_table[i][1] = phonetic_collection
         return record_table
 

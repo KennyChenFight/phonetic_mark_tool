@@ -10,8 +10,18 @@
     <height>600</height>
    </rect>
   </property>
+  <property name="maximumSize">
+   <size>
+    <width>1035</width>
+    <height>600</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>注音標記tool</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../Basic_Dashboard_UI_fix_option_machine_tools-512.png</normaloff>../../Basic_Dashboard_UI_fix_option_machine_tools-512.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="label">
@@ -32,7 +42,7 @@
      </font>
     </property>
     <property name="text">
-     <string>已經錄音的檔案資料夾路徑</string>
+     <string>已錄音的文字檔資料夾路徑</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
@@ -53,7 +63,7 @@
      </font>
     </property>
     <property name="text">
-     <string>尚未錄音的檔案資料夾路徑</string>
+     <string>未錄音的文字檔資料夾路徑</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="le_recorded_file_dir">
@@ -131,7 +141,7 @@
      </font>
     </property>
     <property name="text">
-     <string>mono檔案資料夾路徑</string>
+     <string>mono檔資料夾路徑</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="le_recorded_mono_dir">
@@ -233,7 +243,7 @@
      </font>
     </property>
     <property name="text">
-     <string>full檔案資料夾路徑</string>
+     <string>full檔資料夾路徑</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="le_record_full_dir">

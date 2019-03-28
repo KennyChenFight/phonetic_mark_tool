@@ -12,6 +12,10 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1035, 600)
+        MainWindow.setMaximumSize(QtCore.QSize(1035, 600))
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("../../Basic_Dashboard_UI_fix_option_machine_tools-512.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
@@ -155,14 +159,14 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "注音標記tool"))
-        self.label.setText(_translate("MainWindow", "已經錄音的檔案資料夾路徑"))
-        self.label_2.setText(_translate("MainWindow", "尚未錄音的檔案資料夾路徑"))
+        self.label.setText(_translate("MainWindow", "已錄音的文字檔資料夾路徑"))
+        self.label_2.setText(_translate("MainWindow", "未錄音的文字檔資料夾路徑"))
         self.pb_recorded_file_dir.setText(_translate("MainWindow", "選擇"))
-        self.label_3.setText(_translate("MainWindow", "mono檔案資料夾路徑"))
+        self.label_3.setText(_translate("MainWindow", "mono檔資料夾路徑"))
         self.pb_recorded_mono_file_dir.setText(_translate("MainWindow", "選擇"))
         self.pb_mark_mono_file.setText(_translate("MainWindow", "產生注音檔"))
         self.pb_record_file_dir.setText(_translate("MainWindow", "選擇"))
-        self.label_4.setText(_translate("MainWindow", "full檔案資料夾路徑"))
+        self.label_4.setText(_translate("MainWindow", "full檔資料夾路徑"))
         self.pb_record_full_dir.setText(_translate("MainWindow", "選擇"))
         self.pb_mark_full_file.setText(_translate("MainWindow", "產生注音檔"))
 
