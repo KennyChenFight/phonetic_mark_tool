@@ -1,39 +1,43 @@
 import os
-from collections import OrderedDict
 
 
 class PhoneticMarkTool:
-
+    # 注音與音節的對照表(固定檔案)
     phonetic_compare_file = 'phonetic_compare.txt'
+    # 注音音調對照表(固定檔案)
     tone_compare_file = 'tone_compare.txt'
-
+    # 特殊音節，遇到需跳過
     special_pron = ['pau', 'L', 'niL']
+    # 過濾標點符號之用
     full_punctuation = ' ，。：!"#$%&\\()*+,-./:;<=>?@[\\]^_`{|}~→↓△▿⋄•！？。?〞＃＄％＆』（）＊＋－╱︰；＜＝＞＠〔╲〕 ＿ˋ｛∣｝∼、〃》「」『』【】﹝﹞【】〝〞–—『』「」…﹏'
 
+    # 標記mono file的注音
     @classmethod
     def mark_mono_file(cls, recorded_file_dir,
                        mono_file_dir, mark_file):
         recorded_file_paths = cls.filepath_list(recorded_file_dir)
         mono_file_paths = cls.filepath_list(mono_file_dir)
-        recorded_file_paths, mono_file_paths = cls.check_same_sentence_file(recorded_file_paths, mono_file_paths)
+        #recorded_file_paths, mono_file_paths = cls.check_same_sentence_file(recorded_file_paths, mono_file_paths)
         recorded_table = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
         c_table, v_table = cls.read_c_v_table()
         tone_table = cls.read_tone_table()
         phonetic_table = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
         cls.write_mark_file(phonetic_table, mark_file)
 
+    # 標記full file的注音
     @classmethod
     def mark_full_file(cls, record_file_dir,
                        full_file_dir, mark_file):
         record_file_paths = cls.filepath_list(record_file_dir)
         full_file_paths = cls.filepath_list(full_file_dir)
-        record_file_paths, full_file_paths = cls.check_same_sentence_file(record_file_paths, full_file_paths)
+        #record_file_paths, full_file_paths = cls.check_same_sentence_file(record_file_paths, full_file_paths)
         record_table = cls.produce_record_table(record_file_paths, full_file_paths)
         c_table, v_table = cls.read_c_v_table()
         tone_table = cls.read_tone_table()
         phonetic_table = cls.mark_phonetic(record_table, c_table, v_table, tone_table)
         cls.write_mark_file(phonetic_table, mark_file)
 
+    # 用來檢查有沒有重複的句子，有的話刪除相同的檔案
     @classmethod
     def check_same_sentence_file(cls, txt_file_paths, pron_file_paths):
         txt = {}
@@ -53,6 +57,7 @@ class PhoneticMarkTool:
 
         return txt_file_paths, pron_file_paths
 
+    # 產生已經錄音過的句子與音節的對照表
     @classmethod
     def produce_recorded_table(cls,
                                recorded_file_paths,
@@ -77,13 +82,15 @@ class PhoneticMarkTool:
                     line = line.strip()
                     pron.append(''.join([pron for pron in line if not (pron.isdigit() or pron.isspace())]))
                 pron_list.append(pron)
-        recorded_table = OrderedDict(zip(text_list, pron_list))
+        #recorded_table = OrderedDict(zip(text_list, pron_list))
+        recorded_table = list(map(list, zip(text_list, pron_list)))
         return recorded_table
 
+    # 產生還沒錄音的句子與音節的對照表
     @classmethod
     def produce_record_table(cls,
-                               record_file_paths,
-                               full_file_paths):
+                            record_file_paths,
+                            full_file_paths):
         # text_set = set()
         text_list = []
         for filepath in record_file_paths:
@@ -104,15 +111,18 @@ class PhoneticMarkTool:
                     add_index = line.index('+')
                     pron.append(line[minus_index + 1:add_index])
                 pron_list.append(pron)
-        recorded_table = OrderedDict(zip(text_list, pron_list))
-        return recorded_table
+        #recorded_table = OrderedDict(zip(text_list, pron_list))
+        record_table = list(map(list, zip(text_list, pron_list)))
+        return record_table
 
+    # 根據傳進來的資料夾路徑，傳回所有檔案的路徑
     @classmethod
     def filepath_list(cls, file_dir):
-        return [file_dir + '/' + filename for filename in sorted(os.listdir(file_dir), key=cls.filter)]
+        return [file_dir + '/' + filename for filename in sorted(os.listdir(file_dir), key=cls.filter_filename)]
 
+    # 根據不同的的檔名進行排序
     @classmethod
-    def filter(cls, filename):
+    def filter_filename(cls, filename):
         if filename.startswith('a'):
             return int(filename[:-4].replace('a', ''))
         elif filename.startswith('SomeFile_'):
@@ -120,6 +130,7 @@ class PhoneticMarkTool:
         else:
             return int(filename[:-4])
 
+    # 讀取注音與音節的對照表
     @classmethod
     def read_c_v_table(cls):
         c_table = {}
@@ -134,6 +145,7 @@ class PhoneticMarkTool:
                     v_table[line[2]] = line[1]
         return c_table, v_table
 
+    # 讀取注音音調對照表
     @classmethod
     def read_tone_table(cls):
         tone_table = {}
@@ -143,9 +155,12 @@ class PhoneticMarkTool:
                 tone_table[line[2]] = [line[0], line[1]]
         return tone_table
 
+    # 標記每個句子的注音，並產生對照表
     @classmethod
     def mark_phonetic(cls, record_table, c_table, v_table, tone_table):
-        for sentence, pron_list in record_table.items():
+        for i, element in enumerate(record_table):
+            sentence = element[0]
+            pron_list = element[1]
             phonetic_collection = []
             index = 0
             while index < len(pron_list):
@@ -182,82 +197,16 @@ class PhoneticMarkTool:
                     print('找不到或是特殊符號')
                     index += 1
             print(sentence, phonetic_collection)
-            record_table[sentence] = phonetic_collection
+            record_table[i][1] = phonetic_collection
         return record_table
 
+    # 將句子與注音的對照表進行寫檔
     @classmethod
     def write_mark_file(cls, phonetic_table, mark_file):
         with open(mark_file, 'w', encoding='utf-8') as f:
-            for sentence, phonetic_list in phonetic_table.items():
+            for index, element in enumerate(phonetic_table):
+                sentence = element[0]
+                phonetic_list = element[1]
                 f.write(sentence + '\n')
                 f.write('   '.join([''.join(phonetic) for phonetic in phonetic_list]))
                 f.write('\n')
-
-
-#
-# phonetic_compare_file = 'phonetic_compare.txt'
-# tone_compare_file = 'tone_compare.txt'
-# record_full_file = 'SomeFile_0.lab'
-# recorded_mono_file = 'a0001.lab'
-# record_file = 'SomeFile.txt'
-# record_phonetic_mark_file = 'SomeFile_phonetic.txt'
-# special_pron = ['pau', 'L', 'niL']
-#
-#
-# pron_list = []
-# with open(recorded_mono_file, 'r', encoding='utf-8') as f:
-#     for line in f:
-#         line = line.strip()
-#         pron_list.append(''.join([pron for pron in line if not(pron.isdigit() or pron.isspace())]))
-#
-# print(pron_list)
-
-# pron_list = []
-# with open(record_full_file, 'r', encoding='utf-8') as f:
-#     for line in f:
-#         minus_index = line.index('-')
-#         add_index = line.index('+')
-#         pron_list.append(line[minus_index + 1:add_index])
-#
-# print(pron_list)
-#
-# phonetic_collection = []
-# index = 0
-# while index < len(pron_list):
-#     pron = pron_list[index]
-#     if pron in c_table:
-#         v1_index = index + 1
-#         v2_index = index + 2
-#         if pron_list[v1_index] and pron_list[v2_index] in v_table:
-#             tone = [pron_list[v1_index][-1:], pron_list[v2_index][-1:]]
-#             for key, value in tone_compare.items():
-#                 if value == tone:
-#                     phonetic_list = [c_table[pron], v_table[pron_list[v1_index]], key]
-#                     phonetic_collection.append(phonetic_list)
-#                     index += 3
-#                     break
-#     elif not (pron in special_pron):
-#         v1_index = index
-#         v2_index = index + 1
-#         if (pron_list[v1_index] and pron_list[v2_index]) in v_table:
-#             tone = [pron_list[v1_index][-1:], pron_list[v2_index][-1:]]
-#             for key, value in tone_compare.items():
-#                 if value == tone:
-#                     phonetic_list = [v_table[pron_list[v1_index]], key]
-#                     phonetic_collection.append(phonetic_list)
-#                     index += 2
-#                     break
-#     else:
-#         index += 1
-#
-# print(phonetic_collection)
-
-#
-# with open(record_file, 'r', encoding='utf-8') as f:
-#         text = f.read()
-#
-# with open(record_phonetic_mark_file, 'w', encoding='utf-8') as f:
-#     f.write(text + '\n')
-#     for mark in phonetic_collection:
-#         f.write(''.join(mark))
-#         f.write('   ')

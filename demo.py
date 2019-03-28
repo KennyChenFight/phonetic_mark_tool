@@ -77,10 +77,9 @@ w = AppWindow()
 w.show()
 sys.exit(app.exec_())
 
-
-# recorded_file_dir = 'C:\\Users\\P19054\\Desktop\\recorded - 複製\\txt\\'
-# recorded_mono_dir = 'C:\\Users\\P19054\\Desktop\\recorded - 複製\\mono\\'
-# recorded_mark_file = 'C:\\Users\\P19054\\Desktop\\recorded - 複製\\mark.txt'
+# recorded_file_dir = 'C:\\Users\\P19054\\Desktop\\recorded\\txt\\'
+# recorded_mono_dir = 'C:\\Users\\P19054\\Desktop\\recorded\\mono\\'
+# recorded_mark_file = 'C:\\Users\\P19054\\Desktop\\recorded\\mark.txt'
 #
 # record_file_dir = 'C:\\Users\\P19054\\Desktop\\407\\txt'
 # record_full_dir = 'C:\\Users\\P19054\\Desktop\\407\\full'
