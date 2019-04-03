@@ -16,7 +16,7 @@ class PhoneticMarkTool:
     # 標記mono file的注音
     @classmethod
     def mark_mono_file(cls, recorded_file_dir,
-                       mono_file_dir, mark_file):
+                       mono_file_dir, mark_file, pron_file):
         recorded_file_paths = cls.filepath_list(recorded_file_dir)
         mono_file_paths = cls.filepath_list(mono_file_dir)
         #recorded_file_paths, mono_file_paths = cls.check_same_sentence_file(recorded_file_paths, mono_file_paths)
@@ -24,8 +24,10 @@ class PhoneticMarkTool:
         c_table, v_table = cls.read_c_v_table()
         tone_table = cls.read_tone_table()
         phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
-        cls.calculate_pron(mono_file_paths, wrong_filepaths, pron_dict)
-        # cls.write_mark_file(phonetic_table, mark_file)
+        cls.write_mark_file(phonetic_table, mark_file)
+        cls.calculate_pron(mono_file_paths, pron_dict, pron_file)
+
+        return wrong_filepaths
 
     # 標記full file的注音
     @classmethod
@@ -37,7 +39,7 @@ class PhoneticMarkTool:
         record_table = cls.produce_record_table(record_file_paths, full_file_paths)
         c_table, v_table = cls.read_c_v_table()
         tone_table = cls.read_tone_table()
-        phonetic_table = cls.mark_phonetic(record_table, c_table, v_table, tone_table)
+        phonetic_table, pron_dict = cls.mark_phonetic(record_table, c_table, v_table, tone_table)
         cls.write_mark_file(phonetic_table, mark_file)
 
     # 用來檢查有沒有重複的句子，有的話刪除相同的檔案
@@ -65,17 +67,17 @@ class PhoneticMarkTool:
     def produce_recorded_table(cls,
                                recorded_file_paths,
                                mono_file_paths):
-        wrong_set = cls.check_wrong_mono_file(mono_file_paths)
+        wrong_dict = cls.check_wrong_mono_file(mono_file_paths)
         text_list = []
         for index, filepath in enumerate(recorded_file_paths):
-            if index not in wrong_set:
+            if index not in wrong_dict:
                 with open(filepath, 'r', encoding='utf-8') as f:
                     line = ''.join([text for text in f.read() if not (text in cls.full_punctuation)])
                     text_list.append(line)
 
         pron_list = []
         for index, mono_filepath in enumerate(mono_file_paths):
-            if index not in wrong_set:
+            if index not in wrong_dict:
                 with open(mono_filepath, 'r', encoding='utf-8') as f:
                     pron = []
                     for line in f:
@@ -84,7 +86,7 @@ class PhoneticMarkTool:
                     pron_list.append(pron)
 
         recorded_table = list(map(list, zip(text_list, pron_list)))
-        wrong_filepaths = [mono_file_paths[wrong]for wrong in wrong_set]
+        wrong_filepaths = dict((mono_file_paths[wrong_index], reason) for (wrong_index, reason) in wrong_dict.items())
         return recorded_table, wrong_filepaths
 
     @classmethod
@@ -97,32 +99,35 @@ class PhoneticMarkTool:
                 for line in f:
                     line = line.strip().split(' ')
                     if 'pau' not in line:
-                        text_list.append([int(text) for text in line if text != '' and text.isdigit()])
+                        text_list.append([int(text) for text in line if text != '' and text.lstrip('-').isdigit()])
                 time_collection[count] = text_list
             count += 1
 
-        wrong_set = set()
+        wrong_dict = {}
         for key, text_list in time_collection.items():
+            is_wrong = False
             for time_list in text_list:
                 for time in time_list:
                     if time < 0:
-                        wrong_set.add(key)
+                        wrong_dict[key] = '時長為負數'
+                        is_wrong = True
+                        print('時長為負數:', os.path.basename(mono_file_paths[key]))
                         break
+                if is_wrong:
+                    break
 
         for key, text_list in time_collection.items():
-            if key not in wrong_set:
+            if key not in wrong_dict:
                 for index, time_list in enumerate(text_list):
                     if index + 1 < len(text_list):
                         time1 = time_list[1]
                         time2 = text_list[index+1][0]
                         if time2 - time1 < -250000:
-                            print(time1)
-                            print(time2)
-                            print(os.path.basename(mono_file_paths[key]))
-                            wrong_set.add(key)
+                            print('時長相減不符合:', os.path.basename(mono_file_paths[key]))
+                            wrong_dict[key] = '時長相減不符合'
                             break
-        print(len(wrong_set))
-        return wrong_set
+        print('錯誤個數:', len(wrong_dict))
+        return wrong_dict
 
 
     # 產生還沒錄音的句子與音節的對照表
@@ -222,6 +227,8 @@ class PhoneticMarkTool:
                     else:
                         print('找不到')
                         index += 3
+                        word_count += 1
+                        print(sentence[word_count])
                 elif not (pron in cls.special_pron):
                     v1_index = index
                     v2_index = index + 1
@@ -246,6 +253,8 @@ class PhoneticMarkTool:
                     else:
                         print('找不到')
                         index += 2
+                        word_count += 1
+                        print(sentence[word_count])
                 else:
                     print('找不到或是特殊符號')
                     index += 1
@@ -266,7 +275,7 @@ class PhoneticMarkTool:
                 f.write('\n')
 
     @classmethod
-    def calculate_pron(cls, mono_filepaths, wrong_filepath, pron_dict):
+    def calculate_pron(cls, mono_filepaths, pron_dict, pron_file):
         for pron, info in pron_dict.items():
             count = info[0]
             total_time = []
@@ -287,7 +296,6 @@ class PhoneticMarkTool:
                             total_time.append((int(detail[0]) + 1, round((time2 - time1) / 10000000, 4)))
                             break
                         line_count += 1
-
             if len(total_time) >= 2:
                 average_time = round(statistics.mean([time for index, time in total_time]), 4)
                 stdev_time = round(statistics.stdev([time for index, time in total_time]), 4)
@@ -307,7 +315,7 @@ class PhoneticMarkTool:
                 if time < downbound_time or time > upbound_time:
                     wrong_time_file_index.add(index)
 
-            wrong_time_file_percentage = int(len(wrong_time_file_index) / count * 100)
+            wrong_time_file_percentage = int((len(wrong_time_file_index) / count) * 100)
 
             pron_dict[pron].insert(1, average_time)
             pron_dict[pron].insert(2, stdev_time)
@@ -317,9 +325,12 @@ class PhoneticMarkTool:
             pron_dict[pron].insert(7, wrong_time_file_index)
         print(pron_dict)
 
-        with open('calculate_pron.txt', 'w', encoding='utf-8') as f:
+        with open(pron_file, 'w', encoding='utf-8') as f:
             for pron, info in pron_dict.items():
-                f.write(pron + ',')
+                if len(pron.split(' ')) == 2:
+                    f.write(' ' + pron + ',')
+                else:
+                    f.write(pron + ',')
                 f.write(str(info[0]) + ',')
                 f.write(str(info[1]) + ',')
                 f.write(str(info[2]) + ',')
@@ -333,6 +344,44 @@ class PhoneticMarkTool:
                 else:
                     f.write('無問題句子')
                 f.write('\n')
+
+    @classmethod
+    def write_problem_sentence_file(cls, filepath):
+        with open('mark.txt', 'r', encoding='utf-8') as f:
+            line_count = 1
+            problem_dict = {}
+            for line in f:
+                line = line.strip()
+                if line_count % 2:
+                    sentence_collection = []
+                    for index in range(len(line)):
+                        if index < len(line) - 1:
+                            sentence_split = [line[index], line[index + 1]]
+                            sentence_collection.append(sentence_split)
+                else:
+                    mark_collection = []
+                    marks = line.split('   ')
+                    for index in range(len(marks)):
+                        if index < len(marks) - 1:
+                            mark_split = [marks[index], marks[index + 1]]
+                            mark_collection.append(mark_split)
+                    for index, mark_two_split in enumerate(mark_collection):
+                        one_tone = mark_two_split[0][-1]
+                        two_tone = mark_two_split[1][-1]
+                        if one_tone == 'ˇ' and two_tone == 'ˇ':
+                            if line_count - 1 in problem_dict:
+                                problem_dict[line_count - 1].append(sentence_collection[index])
+                            else:
+                                problem_dict[line_count - 1] = [sentence_collection[index]]
+                line_count += 1
+
+            with open(filepath, 'w', encoding='utf-8') as w:
+                for key, value_collection in problem_dict.items():
+                    w.write(str(key) + ',')
+                    for value_list in value_collection:
+                        w.write(''.join(value_list))
+                        w.write(',')
+                    w.write('\n')
 
 
 
