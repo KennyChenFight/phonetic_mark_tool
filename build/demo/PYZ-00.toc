@@ -1,0 +1,2 @@
+('C:\\Users\\P19054\\Desktop\\python_program\\phonetic_mark_tool\\build\\demo\\PYZ-00.pyz',
+ [])
