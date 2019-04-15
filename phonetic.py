@@ -1,46 +1,76 @@
 import os
 import statistics
 from decimal import Decimal
+import traceback
 
 
 class PhoneticMarkTool:
     # 注音與音節的對照表(固定檔案)
-    phonetic_compare_file = 'phonetic_compare.txt'
+    phonetic_compare_file = 'data/phonetic_compare.txt'
     # 注音音調對照表(固定檔案)
-    tone_compare_file = 'tone_compare.txt'
+    tone_compare_file = 'data/tone_compare.txt'
     # 特殊音節，遇到需跳過
     special_pron = ['pau', 'L', 'niL']
     # 過濾標點符號之用
     full_punctuation = ' ，。：!"#$%&\\()*+,-./:;<=>?@[\\]^_`{|}~→↓△▿⋄•！？。?〞＃＄％＆』（）＊＋－╱︰；＜＝＞＠〔╲〕 ＿ˋ｛∣｝∼、〃》「」『』【】﹝﹞【】〝〞–—『』「」…﹏'
 
+    @classmethod
+    def pick_wrong_mono_file(cls, recorded_file_dir,
+                       mono_file_dir):
+        recorded_file_paths = cls.filepath_list(recorded_file_dir)
+        mono_file_paths = cls.filepath_list(mono_file_dir)
+        recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
+        return wrong_filepaths
+
     # 標記mono file的注音
     @classmethod
     def mark_mono_file(cls, recorded_file_dir,
-                       mono_file_dir, mark_file, pron_file):
-        recorded_file_paths = cls.filepath_list(recorded_file_dir)
-        mono_file_paths = cls.filepath_list(mono_file_dir)
-        #recorded_file_paths, mono_file_paths = cls.check_same_sentence_file(recorded_file_paths, mono_file_paths)
-        recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
-        c_table, v_table = cls.read_c_v_table()
-        tone_table = cls.read_tone_table()
-        phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
-        cls.write_mark_file(phonetic_table, mark_file)
-        cls.calculate_pron(mono_file_paths, pron_dict, pron_file)
+                       mono_file_dir, mark_file,
+                       split_mark_file_dir):
+        try:
+            recorded_file_paths = cls.filepath_list(recorded_file_dir)
+            mono_file_paths = cls.filepath_list(mono_file_dir)
+            recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
+            c_table, v_table = cls.read_c_v_table()
+            tone_table = cls.read_tone_table()
+            phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
+            cls.write_mark_file(phonetic_table, mark_file)
+            cls.split_mark_file(mark_file, split_mark_file_dir)
+        except Exception as e:
+            traceback.print_exc()
+            raise e
 
-        return wrong_filepaths
-
+    @classmethod
+    def produce_phone_analysis(cls, recorded_file_dir, mono_file_dir, analysis_file):
+        try:
+            recorded_file_paths = cls.filepath_list(recorded_file_dir)
+            mono_file_paths = cls.filepath_list(mono_file_dir)
+            recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
+            c_table, v_table = cls.read_c_v_table()
+            tone_table = cls.read_tone_table()
+            phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
+            cls.calculate_pron(mono_file_paths, pron_dict, analysis_file)
+        except Exception as e:
+            traceback.print_exc()
+            raise e
     # 標記full file的注音
     @classmethod
     def mark_full_file(cls, record_file_dir,
-                       full_file_dir, mark_file):
-        record_file_paths = cls.filepath_list(record_file_dir)
-        full_file_paths = cls.filepath_list(full_file_dir)
-        #record_file_paths, full_file_paths = cls.check_same_sentence_file(record_file_paths, full_file_paths)
-        record_table = cls.produce_record_table(record_file_paths, full_file_paths)
-        c_table, v_table = cls.read_c_v_table()
-        tone_table = cls.read_tone_table()
-        phonetic_table, pron_dict = cls.mark_phonetic(record_table, c_table, v_table, tone_table)
-        cls.write_mark_file(phonetic_table, mark_file)
+                       full_file_dir, mark_file, split_mark_file_dir):
+        try:
+            record_file_paths = cls.filepath_list(record_file_dir)
+            full_file_paths = cls.filepath_list(full_file_dir)
+            # record_file_paths, full_file_paths = cls.check_same_sentence_file(record_file_paths, full_file_paths)
+            record_table = cls.produce_record_table(record_file_paths, full_file_paths)
+            c_table, v_table = cls.read_c_v_table()
+            tone_table = cls.read_tone_table()
+            phonetic_table, pron_dict = cls.mark_phonetic(record_table, c_table, v_table, tone_table)
+            cls.write_mark_file(phonetic_table, mark_file)
+            cls.split_mark_file(mark_file, split_mark_file_dir)
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+            raise e
 
     # 用來檢查有沒有重複的句子，有的話刪除相同的檔案
     @classmethod
@@ -220,15 +250,16 @@ class PhoneticMarkTool:
                                     pron_dict[word_pron][1].add(sentence[word_count])
                                     pron_dict[word_pron][2].append([i, index, index + 1, index + 2])
                                 else:
-                                    pron_dict[word_pron] = [1, set(sentence[word_count]), [[i, index, index + 1, index + 2]]]
+                                    pron_dict[word_pron] = [1, set(sentence[word_count]),
+                                                            [[i, index, index + 1, index + 2]]]
                                 word_count += 1
                                 index += 3
                                 break
                     else:
                         print('找不到')
                         index += 3
-                        word_count += 1
                         print(sentence[word_count])
+                        word_count += 1
                 elif not (pron in cls.special_pron):
                     v1_index = index
                     v2_index = index + 1
@@ -253,8 +284,8 @@ class PhoneticMarkTool:
                     else:
                         print('找不到')
                         index += 2
-                        word_count += 1
                         print(sentence[word_count])
+                        word_count += 1
                 else:
                     print('找不到或是特殊符號')
                     index += 1
@@ -273,6 +304,22 @@ class PhoneticMarkTool:
                 f.write(sentence + '\n')
                 f.write('   '.join([''.join(phonetic) for phonetic in phonetic_list]))
                 f.write('\n')
+
+    @classmethod
+    def split_mark_file(cls, mark_file, split_mark_file_dir):
+        with open(mark_file, 'r', encoding='utf-8') as f:
+            line_count = 1
+            line_list = []
+            file_count = 1
+            for line in f:
+                line = line.strip()
+                line_list.append(line)
+                if not(line_count % 2):
+                    with open(split_mark_file_dir + str(file_count) + '.txt', 'w', encoding='utf-8') as w:
+                        w.write('\n'.join(line_list))
+                    line_list = []
+                    file_count += 1
+                line_count += 1
 
     @classmethod
     def calculate_pron(cls, mono_filepaths, pron_dict, pron_file):
