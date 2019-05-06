@@ -92,12 +92,9 @@ class AppWindow(QMainWindow):
                                         QMessageBox.Yes)
 
     def wrong_mono_lab_file_click(self):
-        recorded_file_dir = 'corpus/big5/'
-        utf8_file_dir = 'corpus/utf8/'
         mono_file_dir = 'label/mono/'
         try:
-            FileTool.big5_utf8(recorded_file_dir, utf8_file_dir)
-            wrong_filepaths = PhoneticMarkTool.pick_wrong_mono_file(utf8_file_dir, mono_file_dir)
+            wrong_filepaths = PhoneticMarkTool.pick_wrong_mono_file(mono_file_dir)
 
             message = ''
             if wrong_filepaths:
@@ -120,6 +117,10 @@ class AppWindow(QMainWindow):
 
     def mark_mono_file_click(self):
         try:
+            recorded_file_dir = 'corpus/big5/'
+            utf8_file_dir = 'corpus/utf8/'
+            FileTool.big5_utf8(recorded_file_dir, utf8_file_dir)
+
             recorded_file_dir = 'corpus/utf8/'
             mono_file_dir = 'label/mono/'
             mark_file = 'mark.txt'
@@ -139,8 +140,13 @@ class AppWindow(QMainWindow):
                                 '檢查lab檔案跟分句檔是否有互相對應\n' +
                                 'ex: 句子的文字少了或多了、檔名出錯',
                                 QMessageBox.Yes)
+
     def phonetic_analysis_file_click(self):
         try:
+            recorded_file_dir = 'corpus/big5/'
+            utf8_file_dir = 'corpus/utf8/'
+            FileTool.big5_utf8(recorded_file_dir, utf8_file_dir)
+
             recorded_file_dir = 'corpus/utf8/'
             mono_file_dir = 'label/mono/'
             analysis_file = 'phonetic_analysis.txt'
