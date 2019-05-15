@@ -157,7 +157,6 @@ class PhoneticMarkTool:
                     line_count += 1
                 time_collection[count] = text_list
             count += 1
-            break
 
         wrong_dict = {}
         for key, text_list in time_collection.items():
@@ -182,10 +181,8 @@ class PhoneticMarkTool:
                             print('時長相減不符合:', os.path.basename(mono_file_paths[key]))
                             wrong_dict[key] = '時長相減不符合=>' + '行數:' + str(time_list[-1] + 1)
                             break
-            break
         print('錯誤個數:', len(wrong_dict))
         return wrong_dict
-
 
     # 產生還沒錄音的句子與音節的對照表
     @classmethod
