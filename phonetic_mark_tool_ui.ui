@@ -105,9 +105,9 @@
    <widget class="QPushButton" name="pb_phone_analysis">
     <property name="geometry">
      <rect>
-      <x>750</x>
+      <x>720</x>
       <y>400</y>
-      <width>441</width>
+      <width>261</width>
       <height>41</height>
      </rect>
     </property>
@@ -166,7 +166,7 @@
       <x>43</x>
       <y>70</y>
       <width>20</width>
-      <height>561</height>
+      <height>571</height>
      </rect>
     </property>
     <property name="orientation">
@@ -275,7 +275,7 @@
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>620</y>
+      <y>630</y>
       <width>601</width>
       <height>31</height>
      </rect>
@@ -417,7 +417,7 @@
       <x>680</x>
       <y>70</y>
       <width>20</width>
-      <height>571</height>
+      <height>581</height>
      </rect>
     </property>
     <property name="orientation">
@@ -428,7 +428,7 @@
     <property name="geometry">
      <rect>
       <x>690</x>
-      <y>630</y>
+      <y>640</y>
       <width>561</width>
       <height>20</height>
      </rect>
@@ -443,7 +443,7 @@
       <x>1240</x>
       <y>70</y>
       <width>20</width>
-      <height>571</height>
+      <height>581</height>
      </rect>
     </property>
     <property name="orientation">
@@ -595,7 +595,7 @@
     <property name="geometry">
      <rect>
       <x>750</x>
-      <y>530</y>
+      <y>550</y>
       <width>441</width>
       <height>31</height>
      </rect>
@@ -616,7 +616,7 @@
     <property name="geometry">
      <rect>
       <x>720</x>
-      <y>570</y>
+      <y>590</y>
       <width>381</width>
       <height>21</height>
      </rect>
@@ -640,7 +640,7 @@
     <property name="geometry">
      <rect>
       <x>720</x>
-      <y>600</y>
+      <y>620</y>
       <width>441</width>
       <height>21</height>
      </rect>
@@ -760,7 +760,7 @@
     <property name="geometry">
      <rect>
       <x>710</x>
-      <y>470</y>
+      <y>490</y>
       <width>281</width>
       <height>31</height>
      </rect>
@@ -784,7 +784,7 @@
     <property name="geometry">
      <rect>
       <x>720</x>
-      <y>500</y>
+      <y>520</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -802,6 +802,51 @@
     </property>
     <property name="text">
      <string>須完成前2步驟</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_sentences_analysis">
+    <property name="geometry">
+     <rect>
+      <x>990</x>
+      <y>400</y>
+      <width>231</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>產生單句時長分析檔</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_24">
+    <property name="geometry">
+     <rect>
+      <x>720</x>
+      <y>470</y>
+      <width>441</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>14</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="inputMethodHints">
+     <set>Qt::ImhFormattedNumbersOnly</set>
+    </property>
+    <property name="text">
+     <string>※單句時長分析檔位於: sentences_analysis.txt</string>
     </property>
    </widget>
   </widget>

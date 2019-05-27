@@ -18,6 +18,7 @@ class AppWindow(QMainWindow):
         self.ui.pb_wrong_lab.clicked.connect(self.wrong_mono_lab_file_click)
         self.ui.pb_mark_mono_file.clicked.connect(self.mark_mono_file_click)
         self.ui.pb_phone_analysis.clicked.connect(self.phonetic_analysis_file_click)
+        self.ui.pb_sentences_analysis.clicked.connect(self.sentences_analysis_file_click)
 
     def create_default_dir(self):
         corpus_path = Path('corpus/')
@@ -161,8 +162,38 @@ class AppWindow(QMainWindow):
                                 'Oops!產生過程出錯\n',
                                 QMessageBox.Yes)
 
+    def sentences_analysis_file_click(self):
+        try:
+            recorded_file_dir = 'corpus/big5/'
+            utf8_file_dir = 'corpus/utf8/'
+            FileTool.big5_utf8(recorded_file_dir, utf8_file_dir)
+
+            recorded_file_dir = 'corpus/utf8/'
+            mono_file_dir = 'label/mono/'
+            analysis_file = 'sentences_analysis.txt'
+            PhoneticMarkTool.produce_sentence_analysis(recorded_file_dir, mono_file_dir, analysis_file)
+            QMessageBox.information(self,
+                                    '>_<',
+                                    '產生單句時長分析檔成功!',
+                                    QMessageBox.Yes)
+        except Exception as e:
+            QMessageBox.warning(self,
+                                '>_<',
+                                'Oops!產生過程出錯\n',
+                                QMessageBox.Yes)
+
 
 app = QApplication(sys.argv)
 w = AppWindow()
 w.show()
 sys.exit(app.exec_())
+
+
+# recorded_file_dir = 'corpus/big5/'
+# utf8_file_dir = 'corpus/utf8/'
+# FileTool.big5_utf8(recorded_file_dir, utf8_file_dir)
+#
+# recorded_file_dir = 'corpus/utf8/'
+# mono_file_dir = 'label/mono/'
+# analysis_file = 'sentences_analysis.txt'
+# PhoneticMarkTool.produce_sentence_analysis(recorded_file_dir, mono_file_dir, analysis_file)

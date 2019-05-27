@@ -16,7 +16,7 @@ class FileTool:
                 line_count = 0
                 for line in f:
                     line = line.strip()
-                    with open(big5_file_dir + '/' + str(line_count) + '.txt', 'w', encoding='big5') as w:
+                    with open(big5_file_dir + '/' + str(line_count) + '.txt', 'w', encoding='big5hkscs') as w:
                         w.write(line)
                     line = line.encode('utf-8')
                     with open(utf8_file_dir + '/' + str(line_count) + '.txt', 'wb') as w:

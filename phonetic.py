@@ -59,6 +59,20 @@ class PhoneticMarkTool:
             traceback.print_exc()
             raise e
 
+    @classmethod
+    def produce_sentence_analysis(cls, recorded_file_dir, mono_file_dir, analysis_file):
+        try:
+            recorded_file_paths = cls.filepath_list(recorded_file_dir)
+            mono_file_paths = cls.filepath_list(mono_file_dir)
+            recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
+            c_table, v_table = cls.read_c_v_table()
+            tone_table = cls.read_tone_table()
+            phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
+            cls.calculate_sentence_pron(mono_file_paths, pron_dict, analysis_file)
+        except Exception as e:
+            traceback.print_exc()
+            raise e
+
     # 標記full file的注音
     @classmethod
     def mark_full_file(cls, record_file_dir,
@@ -267,7 +281,10 @@ class PhoneticMarkTool:
                             if value == tone:
                                 phonetic_list = [c_table[pron], v_table[pron_list[v1_index]], key]
                                 phonetic_collection.append(phonetic_list)
-
+                                if sentence == '花圈的緞帶上寫著深切悼念理查尼克森先生':
+                                    print(phonetic_list)
+                                    print(sentence[word_count])
+                                    print(word_count)
                                 word_pron = pron + ' ' + pron_list[v1_index] + ' ' + pron_list[v2_index]
                                 if word_pron in pron_dict:
                                     pron_dict[word_pron][0] += 1
@@ -280,9 +297,9 @@ class PhoneticMarkTool:
                                 index += 3
                                 break
                     else:
-                        # print('找不到')
+                        print('找不到')
                         index += 3
-                        # print(sentence[word_count])
+                        print(sentence[word_count])
                         word_count += 1
                 elif not (pron in cls.special_pron):
                     v1_index = index
@@ -294,6 +311,10 @@ class PhoneticMarkTool:
                                 phonetic_list = [v_table[pron_list[v1_index]], key]
                                 phonetic_collection.append(phonetic_list)
 
+                                if sentence == '花圈的緞帶上寫著深切悼念理查尼克森先生':
+                                    print(phonetic_list)
+                                    print(sentence[word_count])
+                                    print(word_count)
                                 word_pron = pron_list[v1_index] + ' ' + pron_list[v2_index]
                                 if word_pron in pron_dict:
                                     pron_dict[word_pron][0] += 1
@@ -306,16 +327,16 @@ class PhoneticMarkTool:
                                 index += 2
                                 break
                     else:
-                        # print('找不到')
+                        print('找不到')
                         index += 2
-                        # print(sentence[word_count])
+                        print(sentence[word_count])
                         word_count += 1
                 else:
-                    # print('找不到或是特殊符號')
+                    print('找不到或是特殊符號')
                     index += 1
-            # print(sentence, phonetic_collection, pron_list)
+            print(sentence, phonetic_collection, pron_list)
             record_table[i][1] = phonetic_collection
-        # print(pron_dict)
+        print(pron_dict)
         return record_table, pron_dict
 
     # 將句子與注音的對照表進行寫檔
@@ -347,6 +368,7 @@ class PhoneticMarkTool:
 
     @classmethod
     def calculate_pron(cls, mono_filepaths, pron_dict, pron_file):
+        all_total_time = []
         for pron, info in pron_dict.items():
             count = info[0]
             total_time = []
@@ -368,6 +390,7 @@ class PhoneticMarkTool:
                             total_time.append((filename_index, round((time2 - time1) / 10000000, 4)))
                             break
                         line_count += 1
+            all_total_time.extend(total_time)
             if len(total_time) >= 2:
                 average_time = round(statistics.mean([time for index, time in total_time]), 4)
                 stdev_time = round(statistics.stdev([time for index, time in total_time]), 4)
@@ -453,6 +476,63 @@ class PhoneticMarkTool:
                         w.write(''.join(value_list))
                         w.write(',')
                     w.write('\n')
+
+    @classmethod
+    def calculate_sentence_pron(cls, mono_filepaths, pron_dict, pron_file):
+        all_total_time = []
+        for pron, info in pron_dict.items():
+            total_time = []
+            for detail in info[2]:
+                filepath = mono_filepaths[detail[0]]
+                filename_index = int(os.path.basename(filepath).replace('.lab', '').replace('a', ''))
+                line_count = 0
+                time_start_index = detail[1]
+                time_end_index = detail[-1]
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    time1 = 0
+                    time2 = 0
+                    for line in f:
+                        if line_count == time_start_index:
+                            time1 = int(line.strip().split(' ')[0])
+                        elif line_count == time_end_index:
+                            list = line.strip().split(' ')
+                            for index, s in enumerate(list):
+                                if index != 0 and s.isdigit():
+                                    time2 = int(s)
+                                    break
+                            total_time.append((filename_index, round((time2 - time1) / 10000000, 4)))
+                            break
+                        line_count += 1
+            all_total_time.extend(total_time)
+
+        all_sentence_time = {}
+        all_sentence_length = {}
+        for time in all_total_time:
+            file_index = time[0]
+            if file_index in all_sentence_time:
+                all_sentence_time[file_index] += time[1]
+                all_sentence_length[file_index] += 1
+            else:
+                all_sentence_time[file_index] = time[1]
+                all_sentence_length[file_index] = 1
+
+        all_sentence_average_time = {}
+        for file_index, time in all_sentence_time.items():
+            count = all_sentence_length[file_index]
+            if count >= 1:
+                average_time = round(time / count, 4)
+            else:
+                average_time = 0
+            all_sentence_average_time[file_index] = (count, average_time)
+
+        with open(pron_file, 'w', encoding='utf-8') as f:
+            for file_index, sentence_time in sorted(all_sentence_average_time.items()):
+                count = sentence_time[0]
+                f.write(str(file_index) + ',' + str(count) + ',' + str(sentence_time[1]))
+                f.write('\n')
+
+
+
 
 
 
