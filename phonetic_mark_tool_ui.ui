@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1331</width>
-    <height>696</height>
+    <width>1379</width>
+    <height>714</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>460</y>
+      <y>450</y>
       <width>491</width>
       <height>41</height>
      </rect>
@@ -37,27 +37,6 @@
     </property>
     <property name="text">
      <string>產生注音檔</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>240</x>
-      <y>20</y>
-      <width>161</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>微軟正黑體</family>
-      <pointsize>14</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>錄音前-標記注音</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
@@ -144,7 +123,7 @@
      <set>Qt::ImhFormattedNumbersOnly</set>
     </property>
     <property name="text">
-     <string>在內建corpus資料夾中放corpus.txt，格式為一句一列，且為big5</string>
+     <string>在內建corpus資料夾中放corpus.txt，格式為一句一列</string>
     </property>
    </widget>
    <widget class="Line" name="line">
@@ -250,8 +229,8 @@
    <widget class="QLabel" name="label_13">
     <property name="geometry">
      <rect>
-      <x>80</x>
-      <y>200</y>
+      <x>70</x>
+      <y>230</y>
       <width>291</width>
       <height>31</height>
      </rect>
@@ -453,9 +432,9 @@
    <widget class="QPushButton" name="pb_big5_utf8">
     <property name="geometry">
      <rect>
-      <x>110</x>
-      <y>150</y>
-      <width>491</width>
+      <x>90</x>
+      <y>180</y>
+      <width>521</width>
       <height>41</height>
      </rect>
     </property>
@@ -474,7 +453,7 @@
    <widget class="QLabel" name="label_19">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>360</x>
       <y>230</y>
       <width>291</width>
       <height>31</height>
@@ -499,8 +478,8 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>350</y>
-      <width>441</width>
+      <y>370</y>
+      <width>281</width>
       <height>31</height>
      </rect>
     </property>
@@ -516,7 +495,7 @@
      <set>Qt::ImhFormattedNumbersOnly</set>
     </property>
     <property name="text">
-     <string>a.在label/half_full/中放lab檔案(與utf8之txt對應)</string>
+     <string>b.在label/half_full/中放lab檔案</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_21">
@@ -524,7 +503,7 @@
      <rect>
       <x>80</x>
       <y>400</y>
-      <width>371</width>
+      <width>321</width>
       <height>31</height>
      </rect>
     </property>
@@ -540,7 +519,7 @@
      <set>Qt::ImhFormattedNumbersOnly</set>
     </property>
     <property name="text">
-     <string>b.lab檔名格式: Somefile_流水號.lab</string>
+     <string>c.lab檔名格式: Somefile_流水號.lab</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_22">
@@ -665,7 +644,7 @@
      <rect>
       <x>70</x>
       <y>80</y>
-      <width>281</width>
+      <width>71</width>
       <height>31</height>
      </rect>
     </property>
@@ -689,7 +668,7 @@
      <rect>
       <x>70</x>
       <y>310</y>
-      <width>281</width>
+      <width>101</width>
       <height>31</height>
      </rect>
     </property>
@@ -849,13 +828,175 @@
      <string>※單句時長分析檔位於: sentences_analysis.txt</string>
     </property>
    </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>20</y>
+      <width>158</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>14</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>錄音前-標記注音</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rb_big5">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>150</y>
+      <width>83</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>11</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>big5</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rb_utf8">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>150</y>
+      <width>61</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>11</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>utf8</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_25">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>150</y>
+      <width>241</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>14</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="inputMethodHints">
+     <set>Qt::ImhFormattedNumbersOnly</set>
+    </property>
+    <property name="text">
+     <string>選擇corpus.txt的編碼格式:</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rb_big5_2">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>340</y>
+      <width>61</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>11</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>big5</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rb_utf8_2">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>340</y>
+      <width>61</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>11</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>utf8</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_26">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>340</y>
+      <width>261</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微軟正黑體</family>
+      <pointsize>14</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="inputMethodHints">
+     <set>Qt::ImhFormattedNumbersOnly</set>
+    </property>
+    <property name="text">
+     <string>a.選擇與哪個資料夾的txt對應:</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1331</width>
+     <width>1379</width>
      <height>22</height>
     </rect>
    </property>

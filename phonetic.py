@@ -3,17 +3,65 @@ import statistics
 from decimal import Decimal
 import traceback
 import os.path
+from pathlib import Path
+from file import FileTool
 
 
 class PhoneticMarkTool:
-    # 注音與音節的對照表(固定檔案)
+    # 文字語料資料夾位置
+    corpus_path = Path('corpus/')
+    # 文字語料檔案位置
+    corpus_file = Path('corpus/corpus.txt')
+    # 文字語料big5編碼資料夾位置
+    corpus_big5_path = Path('corpus/big5/')
+    # 文字語料utf8編碼資料夾位置
+    corpus_utf8_path = Path('corpus/utf8/')
+    # lab檔案資料夾位置
+    label_path = Path('label/')
+    # lab檔案為half-full格式的資料夾位置
+    label_half_full_path = Path('label/half_full/')
+    # lab檔案為mono格式的資料夾位置
+    label_mono_path = Path('label/mono/')
+    # 全部文字語料標註注音的檔案
+    mark_path = Path('mark.txt')
+    # 將文字語料標註注音後，每一句將其分句之資料夾位置
+    sentence_mark_path = Path('sentence_mark/')
+    # 注音與音節的對照表檔案位置(必要檔案需存在)
     phonetic_compare_file = 'data/phonetic_compare.txt'
-    # 注音音調對照表(固定檔案)
+    # 注音音調對照表檔案位置(必要檔案需存在)
     tone_compare_file = 'data/tone_compare.txt'
-    # 特殊音節，遇到需跳過
+
+    default_all_path = [corpus_path, corpus_big5_path, corpus_utf8_path,
+                label_path, label_half_full_path, label_mono_path,
+                sentence_mark_path]
+    important_path = [phonetic_compare_file, tone_compare_file]
+
+    # 特殊拼音，遇到需跳過
     special_pron = ['pau', 'L', 'niL']
-    # 過濾標點符號之用
+    # 常見的符號，用來過濾語料句子之用
     full_punctuation = ' ，。：!"#$%&\\()*+,-./:;<=>?@[\\]^_`{|}~→↓△▿⋄•！？。?〞＃＄％＆』（）＊＋－╱︰；＜＝＞＠〔╲〕 ＿ˋ｛∣｝∼、〃》「」『』【】﹝﹞【】〝〞–—『』「」…﹏'
+
+    # 檢查預設的檔案路徑是否存在，沒有存在則自動建立
+    @classmethod
+    def check_default_path(cls):
+        for path in cls.default_all_path:
+            if not (path.exists()):
+                path.mkdir()
+
+    @classmethod
+    def produce_corpus_split_file(cls, encoding):
+        if not (cls.corpus_file.exists()):
+            return 'corpus/corpus.txt =>' + '檔案不存在，無法產生'
+        else:
+            try:
+                FileTool.convert_to_multiple_file_by_line(str(cls.corpus_file.resolve()),
+                                                          str(cls.corpus_big5_path.resolve()),
+                                                          str(cls.corpus_utf8_path.resolve()),
+                                                          encoding)
+                return '兩種分句檔產生成功!'
+            except Exception as e:
+                traceback.print_exc()
+                return '轉換編碼失敗，檢查介面選擇的編碼與實際檔案編碼是否一致'
 
     @classmethod
     def pick_wrong_mono_file(cls,
@@ -73,24 +121,25 @@ class PhoneticMarkTool:
             traceback.print_exc()
             raise e
 
-    # 標記full file的注音
+    # 標記 half-full lab的注音
     @classmethod
-    def mark_full_file(cls, record_file_dir,
-                       full_file_dir, mark_file, split_mark_file_dir):
+    def mark_full_file(cls):
         try:
-            record_file_paths = cls.filepath_list(record_file_dir)
-            full_file_paths = cls.filepath_list(full_file_dir)
-            # record_file_paths, full_file_paths = cls.check_same_sentence_file(record_file_paths, full_file_paths)
+            # 讀取utf8資料夾的文字檔及half-full資料夾的lab檔案
+            record_file_paths = cls.filepath_list(str(cls.corpus_utf8_path.resolve() + '/'))
+            full_file_paths = cls.filepath_list(str(cls.label_half_full_path.resolve() + '/'))
+            # 根據文字檔跟lab檔案產生
             record_table = cls.produce_record_table(record_file_paths, full_file_paths)
             c_table, v_table = cls.read_c_v_table()
             tone_table = cls.read_tone_table()
             phonetic_table, pron_dict = cls.mark_phonetic(record_table, c_table, v_table, tone_table)
-            cls.write_mark_file(phonetic_table, mark_file)
-            cls.split_mark_file(mark_file, split_mark_file_dir)
+            cls.write_mark_file(phonetic_table, str(cls.mark_path.resolve()))
+            cls.split_mark_file(cls.mark_path, str(cls.sentence_mark_path.resolve() + '/'))
+            message = '兩種注音檔產生成功!'
         except Exception as e:
-            print(e)
             traceback.print_exc()
-            raise e
+            message = '兩種注音檔產生失敗!'
+        return message
 
     # @classmethod
     # def mark_sentence_with_full_lab(cls, sentence, lab):
@@ -167,7 +216,6 @@ class PhoneticMarkTool:
                                 time_list.append(int(text))
                         time_list.append(line_count)
                         text_list.append(time_list)
-                        #text_list.append([int(text) for text in line if text != '' and text.lstrip('-').isdigit()])
                     line_count += 1
                 time_collection[count] = text_list
             count += 1
