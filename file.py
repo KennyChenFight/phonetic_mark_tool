@@ -68,7 +68,7 @@ class FileTool:
             os.mkdir(utf8_dir)
             big5_paths = os.listdir(big5_dir)
             for path in big5_paths:
-                with open(big5_dir + path, 'r', encoding=Encoding.encodings[Encoding.BIG5]) as f:
+                with open(big5_dir + path, 'r', encoding=Encoding.encodings.value[Encoding.BIG5.value]) as f:
                     line = f.read().strip().encode(Encoding.encodings[Encoding.UTF8])
                     with open(utf8_dir + path, 'wb') as w:
                         w.write(line)

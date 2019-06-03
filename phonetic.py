@@ -4,7 +4,7 @@ from decimal import Decimal
 import traceback
 import os.path
 from pathlib import Path
-from file import FileTool
+from file import FileTool, Encoding, ConvertZTool
 
 
 class PhoneticMarkTool:
@@ -26,6 +26,10 @@ class PhoneticMarkTool:
     mark_path = Path('mark.txt')
     # 將文字語料標註注音後，每一句將其分句之資料夾位置
     sentence_mark_path = Path('sentence_mark/')
+    # 音節時長分析檔位置
+    phonetic_analysis_path = Path('phonetic_analysis.txt')
+    # 單句時長分析檔位置
+    sentences_analysis_path = Path('sentences_analysis.txt')
     # 注音與音節的對照表檔案位置(必要檔案需存在)
     phonetic_compare_file = 'data/phonetic_compare.txt'
     # 注音音調對照表檔案位置(必要檔案需存在)
@@ -63,114 +67,120 @@ class PhoneticMarkTool:
                 traceback.print_exc()
                 return '轉換編碼失敗，檢查介面選擇的編碼與實際檔案編碼是否一致'
 
+    # 挑出時長錯誤的mono lab檔案
     @classmethod
-    def pick_wrong_mono_file(cls,
-                       mono_file_dir):
-        mono_file_paths = cls.filepath_list(mono_file_dir)
+    def pick_wrong_mono_file(cls):
+        mono_file_paths = cls.filepath_list(str(cls.label_mono_path.resolve()))
+
         try:
+            # 檢查出有哪些時長錯誤的mono lab檔案
             wrong_dict = cls.check_wrong_mono_file(mono_file_paths)
             wrong_filepaths = dict(
-                (mono_file_paths[wrong_index], reason) for (wrong_index, reason) in wrong_dict.items())
+                (os.path.basename(mono_file_paths[wrong_index]), reason) for (wrong_index, reason) in wrong_dict.items())
+            return wrong_filepaths
+        except Exception as e:
+            raise e
+
+    # 標記mono lab的注音
+    @classmethod
+    def mark_mono_file(cls):
+        try:
+            ConvertZTool.convert_file(source_filepath=str(cls.corpus_big5_path.resolve()) + '\\',
+                                      source_encoding=Encoding.BIG5,
+                                      dest_filepath=str(cls.corpus_utf8_path.resolve()) + '\\',
+                                      dest_encoding=Encoding.UTF8)
+
+            recorded_file_paths = cls.filepath_list(str(cls.corpus_utf8_path.resolve()))
+            mono_file_paths = cls.filepath_list(str(cls.label_mono_path.resolve()))
+            recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
+            c_table, v_table = cls.read_c_v_table()
+            tone_table = cls.read_tone_table()
+            phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
+            cls.write_mark_file(phonetic_table, str(cls.mark_path.resolve()))
+            cls.split_mark_file(str(cls.mark_path.resolve()), str(cls.sentence_mark_path.resolve()))
+            message = '產生兩種注音檔成功!'
+        except Exception as e:
+            traceback.print_exc()
+            message = '產生失敗'
+        return message
+
+    # 產生音節時長分析檔
+    @classmethod
+    def produce_phone_analysis(cls, encoding):
+        try:
+            # 如果txt檔案是big5編碼，則先轉成utf8
+            if encoding == Encoding.BIG5:
+                ConvertZTool.convert_file(source_filepath=str(cls.corpus_big5_path.resolve()) + '\\',
+                                          source_encoding=Encoding.BIG5,
+                                          dest_filepath=str(cls.corpus_utf8_path.resolve()) + '\\',
+                                          dest_encoding=Encoding.UTF8)
+
+            recorded_file_paths = cls.filepath_list(str(cls.corpus_utf8_path.resolve()))
+            mono_file_paths = cls.filepath_list(str(cls.label_mono_path.resolve()))
+            recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
+            c_table, v_table = cls.read_c_v_table()
+            tone_table = cls.read_tone_table()
+            phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
+            cls.calculate_pron(mono_file_paths, pron_dict, str(cls.phonetic_analysis_path.resolve()))
+            message = '產生音節時長分析檔成功!'
         except:
             traceback.print_exc()
-        return wrong_filepaths
+            message = '產生失敗'
+        return message
 
-    # 標記mono file的注音
     @classmethod
-    def mark_mono_file(cls, recorded_file_dir,
-                       mono_file_dir, mark_file,
-                       split_mark_file_dir):
+    def produce_sentence_analysis(cls, encoding):
         try:
-            recorded_file_paths = cls.filepath_list(recorded_file_dir)
-            mono_file_paths = cls.filepath_list(mono_file_dir)
+            # 如果txt檔案是big5編碼，則先轉成utf8
+            if encoding == Encoding.BIG5:
+                ConvertZTool.convert_file(source_filepath=str(cls.corpus_big5_path.resolve()) + '\\',
+                                          source_encoding=Encoding.BIG5,
+                                          dest_filepath=str(cls.corpus_utf8_path.resolve()) + '\\',
+                                          dest_encoding=Encoding.UTF8)
+
+            recorded_file_paths = cls.filepath_list(str(cls.corpus_utf8_path.resolve()))
+            mono_file_paths = cls.filepath_list(str(cls.label_mono_path.resolve()))
             recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
             c_table, v_table = cls.read_c_v_table()
             tone_table = cls.read_tone_table()
             phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
-            cls.write_mark_file(phonetic_table, mark_file)
-            cls.split_mark_file(mark_file, split_mark_file_dir)
-        except Exception as e:
+            cls.calculate_sentence_pron(mono_file_paths, pron_dict, str(cls.sentences_analysis_path.resolve()))
+            message = '產生單句時長分析檔成功!'
+        except:
             traceback.print_exc()
-            raise e
-
-    @classmethod
-    def produce_phone_analysis(cls, recorded_file_dir, mono_file_dir, analysis_file):
-        try:
-            recorded_file_paths = cls.filepath_list(recorded_file_dir)
-            mono_file_paths = cls.filepath_list(mono_file_dir)
-            recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
-            c_table, v_table = cls.read_c_v_table()
-            tone_table = cls.read_tone_table()
-            phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
-            cls.calculate_pron(mono_file_paths, pron_dict, analysis_file)
-        except Exception as e:
-            traceback.print_exc()
-            raise e
-
-    @classmethod
-    def produce_sentence_analysis(cls, recorded_file_dir, mono_file_dir, analysis_file):
-        try:
-            recorded_file_paths = cls.filepath_list(recorded_file_dir)
-            mono_file_paths = cls.filepath_list(mono_file_dir)
-            recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
-            c_table, v_table = cls.read_c_v_table()
-            tone_table = cls.read_tone_table()
-            phonetic_table, pron_dict = cls.mark_phonetic(recorded_table, c_table, v_table, tone_table)
-            cls.calculate_sentence_pron(mono_file_paths, pron_dict, analysis_file)
-        except Exception as e:
-            traceback.print_exc()
-            raise e
+            message = '產生失敗'
+        return message
 
     # 標記 half-full lab的注音
     @classmethod
-    def mark_full_file(cls):
+    def mark_full_file(cls, encoding):
         try:
+            # 如果txt檔案是big5編碼，則先轉成utf8
+            if encoding == Encoding.BIG5:
+                ConvertZTool.convert_file(source_filepath=str(cls.corpus_big5_path.resolve()) + '\\',
+                                          source_encoding=Encoding.BIG5,
+                                          dest_filepath=str(cls.corpus_utf8_path.resolve()) + '\\',
+                                          dest_encoding=Encoding.UTF8)
+
             # 讀取utf8資料夾的文字檔及half-full資料夾的lab檔案
-            record_file_paths = cls.filepath_list(str(cls.corpus_utf8_path.resolve() + '/'))
-            full_file_paths = cls.filepath_list(str(cls.label_half_full_path.resolve() + '/'))
-            # 根據文字檔跟lab檔案產生
+            record_file_paths = cls.filepath_list(str(cls.corpus_utf8_path.resolve()))
+            full_file_paths = cls.filepath_list(str(cls.label_half_full_path.resolve()))
+            # 根據文字檔跟lab檔案產生, 不會檢查是否有錯的lab檔案(無從檢查)
             record_table = cls.produce_record_table(record_file_paths, full_file_paths)
+            # 讀取注音與音節的對照表
             c_table, v_table = cls.read_c_v_table()
+            # 讀取音調表
             tone_table = cls.read_tone_table()
+            # 標記注音
             phonetic_table, pron_dict = cls.mark_phonetic(record_table, c_table, v_table, tone_table)
+            # 將注音檔寫檔出來，兩種格式:多句一檔、單句多檔
             cls.write_mark_file(phonetic_table, str(cls.mark_path.resolve()))
-            cls.split_mark_file(cls.mark_path, str(cls.sentence_mark_path.resolve() + '/'))
+            cls.split_mark_file(cls.mark_path, str(cls.sentence_mark_path.resolve()))
             message = '兩種注音檔產生成功!'
         except Exception as e:
             traceback.print_exc()
             message = '兩種注音檔產生失敗!'
         return message
-
-    # @classmethod
-    # def mark_sentence_with_full_lab(cls, sentence, lab):
-    #     record_file_dir = 'corpus/utf8/'
-    #     record_full_file_dir = 'label/half_full/'
-    #     mark_file = 'mark.txt'
-    #     split_mark_file_dir = 'sentence_mark/'
-    #     try:
-    #         cls.mark_full_file(record_file_dir, record_full_file_dir, mark_file, split_mark_file_dir)
-    #     except Exception as e:
-    #         print(e)
-
-    # 用來檢查有沒有重複的句子，有的話刪除相同的檔案
-    @classmethod
-    def check_same_sentence_file(cls, txt_file_paths, pron_file_paths):
-        txt = {}
-        repeated_file = []
-        delete_file = []
-        for txt_file in txt_file_paths:
-            with open(txt_file, 'r', encoding='utf-8') as f:
-                line = ''.join([text for text in f.read() if not (text in cls.full_punctuation)])
-                if line in txt:
-                    delete_file.append(txt_file)
-                    repeated_file.append((txt[line], txt_file))
-                else:
-                    txt[line] = txt_file
-        txt_file_paths = [t for t in txt_file_paths if t not in delete_file]
-        delete_file_names = [os.path.basename(t).replace('.txt', '') for t in delete_file]
-        pron_file_paths = [t for t in pron_file_paths if os.path.basename(t).replace('.lab', '') not in delete_file_names]
-
-        return txt_file_paths, pron_file_paths
 
     # 產生已經錄音過的句子與音節的對照表
     @classmethod
@@ -199,6 +209,7 @@ class PhoneticMarkTool:
         wrong_filepaths = dict((mono_file_paths[wrong_index], reason) for (wrong_index, reason) in wrong_dict.items())
         return recorded_table, wrong_filepaths
 
+    # 檢查出哪些mono lab檔有錯:時長為負數、時常相減不符合標準
     @classmethod
     def check_wrong_mono_file(cls, mono_file_paths):
         count = 0
@@ -408,7 +419,7 @@ class PhoneticMarkTool:
                 line = line.strip()
                 line_list.append(line)
                 if not(line_count % 2):
-                    with open(split_mark_file_dir + str(file_count) + '.txt', 'w', encoding='utf-8') as w:
+                    with open(split_mark_file_dir + '/' + str(file_count) + '.txt', 'w', encoding='utf-8') as w:
                         w.write('\n'.join(line_list))
                     line_list = []
                     file_count += 1
