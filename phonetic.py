@@ -85,11 +85,6 @@ class PhoneticMarkTool:
     @classmethod
     def mark_mono_file(cls):
         try:
-            ConvertZTool.convert_file(source_filepath=str(cls.corpus_big5_path.resolve()) + '\\',
-                                      source_encoding=Encoding.BIG5,
-                                      dest_filepath=str(cls.corpus_utf8_path.resolve()) + '\\',
-                                      dest_encoding=Encoding.UTF8)
-
             recorded_file_paths = cls.filepath_list(str(cls.corpus_utf8_path.resolve()))
             mono_file_paths = cls.filepath_list(str(cls.label_mono_path.resolve()))
             recorded_table, wrong_filepaths = cls.produce_recorded_table(recorded_file_paths, mono_file_paths)
